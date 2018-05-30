@@ -1,19 +1,26 @@
+#!/usr/bin/env python3
 """
 Train our RNN on extracted features or images.
 """
 from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping, CSVLogger
 from models import ResearchModels
 from data import DataSet
+import argparse
 import time
 import os.path
+
+parser = argparse.ArgumentParser(
+    description='4 models of video classification'
+)
+
 
 def train(data_type, seq_length, model, saved_model=None,
           class_limit=None, image_shape=None,
           load_to_memory=False, batch_size=32, nb_epoch=100):
     # Helper: Save the model.
     checkpointer = ModelCheckpoint(
-        filepath=os.path.join('data', 'checkpoints', model + '-' + data_type + \
-            '.{epoch:03d}-{val_loss:.3f}.hdf5'),
+        filepath=os.path.join('data', 'checkpoints', model + '-' + data_type +
+                              '.{epoch:03d}-{val_loss:.3f}.hdf5'),
         verbose=1,
         save_best_only=True)
 
@@ -25,8 +32,8 @@ def train(data_type, seq_length, model, saved_model=None,
 
     # Helper: Save results.
     timestamp = time.time()
-    csv_logger = CSVLogger(os.path.join('data', 'logs', model + '-' + 'training-' + \
-        str(timestamp) + '.log'))
+    csv_logger = CSVLogger(os.path.join('data', 'logs', model + '-' + 'training-' +
+                                        str(timestamp) + '.log'))
 
     # Get the data and process it.
     if image_shape is None:
@@ -42,7 +49,8 @@ def train(data_type, seq_length, model, saved_model=None,
         )
 
     # Get samples per epoch.
-    # Multiply by 0.7 to attempt to guess how much of data.data is the train set.
+    # Multiply by 0.7 to attempt to guess how much of data.data is the train
+    # set.
     steps_per_epoch = (len(data.data) * 0.7) // batch_size
 
     if load_to_memory:
@@ -80,11 +88,24 @@ def train(data_type, seq_length, model, saved_model=None,
             validation_steps=40,
             workers=4)
 
+
 def main():
-    """These are the main training settings. Set each before running
-    this file."""
-    # model can be one of lstm, lrcn, mlp, conv_3d, c3d
-    model = 'lstm'
+    """
+    These are the main training settings. Set each before running
+    this file.
+    """
+
+    parser.add_argument(
+        '-m', '--model',
+        help='model can be one of lstm, lrcn, mlp, conv_3d, c3d',
+        default='lstm',
+        required=False)
+
+    # Parse
+    args = vars(parser.parse_args())
+
+    model = args['model']
+    print("Set model to ", model)
     saved_model = None  # None or weights file
     class_limit = None  # int, can be 1-101 or None
     seq_length = 40
@@ -105,6 +126,7 @@ def main():
     train(data_type, seq_length, model, saved_model=saved_model,
           class_limit=class_limit, image_shape=image_shape,
           load_to_memory=load_to_memory, batch_size=batch_size, nb_epoch=nb_epoch)
+
 
 if __name__ == '__main__':
     main()
