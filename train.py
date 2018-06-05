@@ -111,7 +111,7 @@ def main():
     seq_length = 40
     load_to_memory = False  # pre-load the sequences into memory
     batch_size = 32
-    nb_epoch = 1000
+    nb_epoch = 3
 
     # Chose images or features and image shape based on network.
     if model in ['conv_3d', 'c3d', 'lrcn']:
